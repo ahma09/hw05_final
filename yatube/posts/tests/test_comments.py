@@ -32,17 +32,15 @@ class CommentsTest(TestCase):
         comments_count = Comment.objects.count()
         comments_data = {
             'text': 'comments-text',
-            'pk': self.post.pk,
         }
 
-        response = self.guest_client.post(
-            reverse('posts:add_comment', kwargs={'post_id': self.post.id}),
-        )
+        url = reverse('posts:add_comment', kwargs={'post_id': self.post.id})
+        response = self.guest_client.post(url)
         self.assertRedirects(
-            response, f'/auth/login/?next=/posts/{self.post.id}/comment/'
+            response, f'/auth/login/?next={url}'
         )
         response = self.authorized_client.post(
-            reverse('posts:add_comment', kwargs={'post_id': self.post.id}),
+            url,
             data=comments_data,
             follow=True
         )
@@ -52,7 +50,7 @@ class CommentsTest(TestCase):
             )
         )
         self.assertEqual(Comment.objects.count(), comments_count + 1)
-        expected_comment = Comment.objects.latest("id")
+        expected_comment = Comment.objects.latest('id')
         response = self.authorized_client.get(
             reverse(
                 'posts:post_detail', kwargs={'post_id': self.post.id}

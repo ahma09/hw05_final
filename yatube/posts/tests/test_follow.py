@@ -26,18 +26,28 @@ class FollowTest(TestCase):
 
     def test_subscribe_redirect_anonymous_on_login(self):
         """Страница profile/username/follow/ перенаправляет анонима."""
+
+        url = reverse(
+            'posts:profile_follow', kwargs={'username': self.follow_me}
+        )
         response = self.guest_client.get(
-            f'/profile/{self.follow_me}/follow/',
+            url,
             follow=True)
         self.assertRedirects(
-            response, f'/auth/login/?next=/profile/{self.follow_me}/follow/'
+            response, f'/auth/login/?next={url}'
         )
 
     def test_subscribe_authorized_user(self):
-        """
-        Авторизованный пользователь может подписываться
-        на других пользователей и удалять их из подписок
-        """
+        """Авторизованный пользователь может подписываться, но не на себя"""
+
+        self.authorized_client.get(
+            reverse(
+                'posts:profile_follow',
+                kwargs={'username': self.follow_you},
+            )
+        )
+        self.assertEqual(Follow.objects.count(), 0)
+
         self.authorized_client.get(
             reverse(
                 'posts:profile_follow',
@@ -55,10 +65,25 @@ class FollowTest(TestCase):
         )
         self.assertEqual(Follow.objects.count(), 0)
 
+    def test_unsubscribe_authorized_user(self):
+        """Авторизованный пользователь может отписываться."""
+
+        Follow.objects.get_or_create(
+            user=self.follow_you, author=self.follow_me
+        )
+
+        self.authorized_client.get(
+            reverse(
+                'posts:profile_unfollow',
+                kwargs={'username': self.follow_me},
+            )
+        )
+        self.assertEqual(Follow.objects.count(), 0)
+
     def test_author_posts_appear_subscribed_user_page(self):
         """
         Новая запись пользователя появляется в ленте тех,
-        кто на него подписан и не появляется в ленте тех, кто не подписан
+        кто на него подписан и не появляется в ленте тех, кто не подписан.
         """
         response = self.authorized_client.get(reverse('posts:follow_index',))
         self.assertEqual(len(response.context['page_obj']), 0)

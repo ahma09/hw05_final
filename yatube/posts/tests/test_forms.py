@@ -83,7 +83,7 @@ class PostFormTest(TestCase):
         self.assertEqual(new_post.group, self.group)
 
     def test_edit_post(self):
-        """Проверка редактирования записи пользователем"""
+        """Проверка редактирования записи пользователем."""
         edit_data = {
             'text': 'edit-text',
             'group': self.group_new.pk,

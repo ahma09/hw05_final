@@ -3,7 +3,6 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from django.core.cache import cache
 
-
 from posts.models import Post, Group
 
 User = get_user_model()
@@ -35,7 +34,7 @@ class postPagesTests(TestCase):
         self.authorized_client.force_login(self.user)
 
     def test_index_show_correct_context(self):
-        """Тест для проверки кэширования главной страницы"""
+        """Тест для проверки кэширования главной страницы."""
         response = self.authorized_client.get(reverse('posts:index')).content
         Post.objects.filter(pk=self.post_new.id).delete()
         new_response = self.authorized_client.get(reverse(
