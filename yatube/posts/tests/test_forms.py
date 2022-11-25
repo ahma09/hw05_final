@@ -75,7 +75,8 @@ class PostFormTest(TestCase):
             follow=True
         )
         self.assertRedirects(
-            response, reverse('posts:profile', kwargs={'username': self.user})
+            response,
+            reverse('posts:profile', kwargs={'username': self.user.username})
         )
         self.assertEqual(Post.objects.count(), post_count + 1)
         new_post = Post.objects.last()

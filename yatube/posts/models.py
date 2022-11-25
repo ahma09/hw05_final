@@ -28,7 +28,7 @@ class Follow(models.Model):
                 fields=['user', 'author'], name='unique_follow'
             ),
             models.CheckConstraint(
-                check=~Q(author=F('user')), name='fields_not_equial'
+                check=~Q(author=F('user')), name='fields_not_equal'
             ),
         ]
 

@@ -28,7 +28,8 @@ class FollowTest(TestCase):
         """Страница profile/username/follow/ перенаправляет анонима."""
 
         url = reverse(
-            'posts:profile_follow', kwargs={'username': self.follow_me}
+            'posts:profile_follow',
+            kwargs={'username': self.follow_me.username}
         )
         response = self.guest_client.get(
             url,
@@ -40,30 +41,27 @@ class FollowTest(TestCase):
     def test_subscribe_authorized_user(self):
         """Авторизованный пользователь может подписываться, но не на себя"""
 
-        self.authorized_client.get(
-            reverse(
-                'posts:profile_follow',
-                kwargs={'username': self.follow_you},
-            )
-        )
-        self.assertEqual(Follow.objects.count(), 0)
+        count = Follow.objects.count()
+        follow_self = User.objects.create_user(username='follow_self')
+        authorized_client = Client()
+        authorized_client.force_login(follow_self)
 
-        self.authorized_client.get(
+        authorized_client.get(
             reverse(
                 'posts:profile_follow',
-                kwargs={'username': self.follow_me},
+                kwargs={'username': follow_self.username},
             )
         )
-        self.assertEqual(Follow.objects.last().user, self.follow_you)
+        self.assertEqual(Follow.objects.count(), count)
+
+        authorized_client.get(
+            reverse(
+                'posts:profile_follow',
+                kwargs={'username': self.follow_me.username},
+            )
+        )
+        self.assertEqual(Follow.objects.last().user, follow_self)
         self.assertEqual(Follow.objects.last().author, self.follow_me)
-
-        self.authorized_client.get(
-            reverse(
-                'posts:profile_unfollow',
-                kwargs={'username': self.follow_me},
-            )
-        )
-        self.assertEqual(Follow.objects.count(), 0)
 
     def test_unsubscribe_authorized_user(self):
         """Авторизованный пользователь может отписываться."""
@@ -71,14 +69,14 @@ class FollowTest(TestCase):
         Follow.objects.get_or_create(
             user=self.follow_you, author=self.follow_me
         )
-
+        count = Follow.objects.count()
         self.authorized_client.get(
             reverse(
                 'posts:profile_unfollow',
-                kwargs={'username': self.follow_me},
+                kwargs={'username': self.follow_me.username},
             )
         )
-        self.assertEqual(Follow.objects.count(), 0)
+        self.assertEqual(Follow.objects.count(), count - 1)
 
     def test_author_posts_appear_subscribed_user_page(self):
         """
@@ -91,7 +89,7 @@ class FollowTest(TestCase):
         self.authorized_client.get(
             reverse(
                 'posts:profile_follow',
-                kwargs={'username': self.follow_me},
+                kwargs={'username': self.follow_me.username},
             )
         )
         response = self.authorized_client.get(reverse('posts:follow_index',))

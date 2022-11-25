@@ -3,7 +3,9 @@
 {% block content %}
   <div class="container py-5">     
     <h1>Последние обновления на сайте</h1>
-    {% include 'posts/includes/switcher.html' %}
+    {% with index=True follow=False %}
+      {% include 'posts/includes/switcher.html' %}
+    {% endwith %}
     {% load cache %}
     {% cache 20 index_page page_obj %}
     {% for post in page_obj %}

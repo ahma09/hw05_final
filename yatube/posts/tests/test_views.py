@@ -137,7 +137,7 @@ class postPagesTests(TestCase):
         list_url = {
             'posts:index': None,
             'posts:group_posts': {'slug': self.group.slug},
-            'posts:profile': {'username': self.user},
+            'posts:profile': {'username': self.user.username},
         }
         for url, arg in list_url.items():
             with self.subTest():
